@@ -21,8 +21,11 @@ const fetchFavorites = async () => {
     throw new Error(error.message);
   }
   
-  // Properly map the nested books data to match the Book type
-  return data.map(item => item.books as Book) as Book[];
+  // Transform the nested data structure to match the Book type
+  // Each item.books contains the book data
+  return data.map(item => {
+    return item.books as unknown as Book;
+  });
 };
 
 const Favorites = () => {
