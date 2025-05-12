@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import BookGrid from "@/components/BookGrid";
 import { Button } from "@/components/ui/button";
@@ -6,13 +7,31 @@ import { supabase } from "@/integrations/supabase/client";
 import { Book } from "@/types/book";
 import Header from "@/components/Header";
 import { useToast } from "@/hooks/use-toast";
+import { 
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger 
+} from "@/components/ui/tabs";
 
-const fetchBooks = async (category: string | null = null) => {
+const fetchCategories = async () => {
+  const { data, error } = await supabase
+    .from("categories")
+    .select("id, name");
+    
+  if (error) {
+    throw new Error(error.message);
+  }
+  
+  return data || [];
+};
+
+const fetchBooks = async (categoryId: string | null = null) => {
   let query = supabase.from("books").select("*");
   
-  if (category && category !== "All Books") {
-    // Map frontend category to database genre field
-    query = query.eq("genre", category);
+  if (categoryId && categoryId !== "all") {
+    // Filter by genre ID
+    query = query.eq("genre", categoryId);
   }
   
   const { data, error } = await query.order("created_at", { ascending: false });
@@ -43,19 +62,35 @@ const addToFavorites = async (bookId: string, userId: string) => {
 };
 
 const Index = () => {
-  const [selectedCategory, setSelectedCategory] = useState("All Books");
+  const [selectedCategoryId, setSelectedCategoryId] = useState("all");
   const { toast } = useToast();
-  const categories = ["All Books", "Fiction", "History", "Mystery", "Non-fiction", "Science"];
+  
+  const { data: categories = [] } = useQuery({
+    queryKey: ["categories"],
+    queryFn: fetchCategories,
+  });
   
   const { data: books = [], isLoading } = useQuery({
-    queryKey: ["books", selectedCategory],
-    queryFn: () => fetchBooks(selectedCategory === "All Books" ? null : selectedCategory),
+    queryKey: ["books", selectedCategoryId],
+    queryFn: () => fetchBooks(selectedCategoryId === "all" ? null : selectedCategoryId),
   });
+
+  const { data: session } = useQuery({
+    queryKey: ["session"],
+    queryFn: async () => {
+      const { data } = await supabase.auth.getSession();
+      return data.session;
+    },
+  });
+  
+  // Find the name of the selected category
+  const selectedCategoryName = selectedCategoryId === "all" 
+    ? "All Books" 
+    : categories.find(c => c.id === selectedCategoryId)?.name || "All Books";
 
   const handleAddToFavorites = async (bookId: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      if (!session?.user) {
         toast({
           title: "Authentication required",
           description: "Please login to add books to favorites",
@@ -64,44 +99,68 @@ const Index = () => {
         return;
       }
       
-      await addToFavorites(bookId, user.id);
+      await addToFavorites(bookId, session.user.id);
       
-    } catch (error) {
+      toast({
+        title: "Success",
+        description: "Book added to favorites",
+      });
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to add book to favorites",
+        description: error.message || "Failed to add book to favorites",
         variant: "destructive",
       });
     }
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-background">
       <Header />
       
-      <div className="my-8">
-        <h2 className="text-2xl font-bold mb-4">Categories</h2>
-        <div className="flex flex-wrap gap-2">
-          {categories.map((category) => (
-            <Button
-              key={category}
-              variant={selectedCategory === category ? "default" : "outline"}
-              onClick={() => setSelectedCategory(category)}
-              className="rounded-full"
-            >
-              {category}
-            </Button>
-          ))}
+      <div className="container mx-auto px-4 py-8">
+        <div className="my-8 text-center">
+          <h1 className="text-4xl font-bold mb-4">Welcome to Bookshelf</h1>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Discover, share, and enjoy your favorite books from our growing collection.
+            Browse through different categories or upload your own books.
+          </p>
         </div>
-      </div>
-      
-      <div className="my-8">
-        <h2 className="text-2xl font-bold mb-4">{selectedCategory}</h2>
-        <BookGrid 
-          books={books} 
-          isLoading={isLoading} 
-          onAddToFavorites={handleAddToFavorites}
-        />
+        
+        <div className="my-12 bg-primary/5 rounded-lg p-6 shadow-md">
+          <h2 className="text-2xl font-bold mb-6 text-center">Browse by Category</h2>
+          
+          <Tabs 
+            defaultValue="all"
+            value={selectedCategoryId} 
+            onValueChange={setSelectedCategoryId}
+            className="w-full"
+          >
+            <TabsList className="flex w-full overflow-x-auto py-2 mb-6">
+              <TabsTrigger value="all" className="flex-shrink-0 rounded-full">
+                All Books
+              </TabsTrigger>
+              {categories.map((category) => (
+                <TabsTrigger 
+                  key={category.id} 
+                  value={category.id}
+                  className="flex-shrink-0 rounded-full"
+                >
+                  {category.name}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            
+            <TabsContent value={selectedCategoryId} className="mt-6">
+              <h2 className="text-2xl font-bold mb-6">{selectedCategoryName}</h2>
+              <BookGrid 
+                books={books} 
+                isLoading={isLoading} 
+                onAddToFavorites={handleAddToFavorites}
+              />
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
     </div>
   );

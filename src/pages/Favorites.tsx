@@ -1,10 +1,12 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import BookGrid from "@/components/BookGrid";
 import { supabase } from "@/integrations/supabase/client";
 import { Book } from "@/types/book";
 import Header from "@/components/Header";
+import { useNavigate } from "react-router-dom";
+import { BookOpen } from "lucide-react";
 
 const fetchFavorites = async () => {
   const { data: { user } } = await supabase.auth.getUser();
@@ -34,18 +36,54 @@ const fetchFavorites = async () => {
 };
 
 const Favorites = () => {
+  const navigate = useNavigate();
+  
+  const { data: session } = useQuery({
+    queryKey: ["session"],
+    queryFn: async () => {
+      const { data } = await supabase.auth.getSession();
+      return data.session;
+    },
+  });
+  
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (session === null) {
+      navigate("/login");
+    }
+  }, [session, navigate]);
+  
   const { data: books = [], isLoading } = useQuery({
     queryKey: ["favorites"],
     queryFn: fetchFavorites,
+    enabled: !!session,
   });
 
+  if (!session) {
+    return null; // Will redirect to login
+  }
+
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-background">
       <Header />
       
-      <div className="my-8">
-        <h2 className="text-2xl font-bold mb-4">Your Favorites</h2>
-        <BookGrid books={books} isLoading={isLoading} />
+      <div className="container mx-auto px-4 py-8">
+        <div className="my-8">
+          <h1 className="text-3xl font-bold mb-4 flex items-center">
+            <BookOpen className="mr-2" /> Your Favorites
+          </h1>
+          
+          {books.length === 0 && !isLoading ? (
+            <div className="text-center p-12 bg-muted/20 rounded-lg">
+              <h3 className="text-xl font-semibold mb-2">No favorites yet</h3>
+              <p className="text-muted-foreground">
+                Start exploring our collection and add books to your favorites.
+              </p>
+            </div>
+          ) : (
+            <BookGrid books={books} isLoading={isLoading} />
+          )}
+        </div>
       </div>
     </div>
   );

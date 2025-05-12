@@ -4,6 +4,10 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Book } from "@/types/book";
 import { useToast } from "@/hooks/use-toast";
+import { Heart, BookOpen, ExternalLink } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface BookCardProps {
   book: Book;
@@ -12,56 +16,81 @@ interface BookCardProps {
 
 const BookCard = ({ book, onAddToFavorites }: BookCardProps) => {
   const { toast } = useToast();
+  const [isAddingToFavorites, setIsAddingToFavorites] = React.useState(false);
+  
+  // Get categories to display proper name
+  const { data: categories = [] } = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => {
+      const { data } = await supabase.from("categories").select("*");
+      return data || [];
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+  
+  // Find category name from genre ID if available
+  const categoryName = React.useMemo(() => {
+    if (book.genre && categories.length > 0) {
+      const category = categories.find(c => c.id === book.genre);
+      if (category) return category.name;
+    }
+    return book.category || "Uncategorized";
+  }, [book, categories]);
 
   const handleAddToFavorites = () => {
     if (onAddToFavorites) {
-      onAddToFavorites(book.id);
-      toast({
-        title: "Added to favorites",
-        description: `${book.title} has been added to your favorites.`,
-      });
+      setIsAddingToFavorites(true);
+      
+      try {
+        onAddToFavorites(book.id);
+      } finally {
+        setIsAddingToFavorites(false);
+      }
     }
   };
 
   return (
-    <Card className="overflow-hidden h-full flex flex-col">
-      <div className="relative h-48 bg-muted">
-        {book.cover_image ? (
+    <Card className="overflow-hidden h-full flex flex-col transform transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
+      <div className="relative h-52 bg-muted">
+        {book.cover_image || book.cover_url ? (
           <img
-            src={book.cover_image}
+            src={book.cover_image || book.cover_url}
             alt={book.title}
             className="object-cover w-full h-full"
           />
         ) : (
-          <div className="flex items-center justify-center h-full bg-muted">
-            <span className="text-muted-foreground">No Cover</span>
+          <div className="flex items-center justify-center h-full bg-primary/5">
+            <BookOpen size={48} className="text-primary/50" />
           </div>
         )}
+        <div className="absolute top-2 right-2">
+          <Badge variant="secondary" className="bg-background/80 backdrop-blur-sm">
+            {categoryName}
+          </Badge>
+        </div>
       </div>
       <CardContent className="flex-grow p-4">
-        <h3 className="text-lg font-semibold line-clamp-1">{book.title}</h3>
-        <p className="text-sm text-muted-foreground line-clamp-1">
+        <h3 className="text-lg font-semibold line-clamp-2 mb-1">{book.title}</h3>
+        <p className="text-sm text-muted-foreground line-clamp-1 mb-2">
           {book.author}
+          {book.publication_year && ` • ${book.publication_year}`}
         </p>
-        <div className="mt-2">
-          <span className="inline-block px-2 py-1 text-xs bg-secondary text-secondary-foreground rounded-full">
-            {book.category}
-          </span>
-        </div>
-        <p className="mt-2 text-sm line-clamp-2">{book.description}</p>
+        <p className="text-sm line-clamp-3 text-muted-foreground">{book.description}</p>
       </CardContent>
-      <CardFooter className="p-4 pt-0 flex justify-between">
+      <CardFooter className="p-4 pt-0 flex items-center gap-2">
         <Button
           variant="outline"
           size="sm"
           onClick={handleAddToFavorites}
+          disabled={isAddingToFavorites}
+          className="flex-1"
         >
-          Add to Favorites
+          <Heart className="mr-2 h-4 w-4" /> Favorite
         </Button>
         {book.file_url && (
-          <Button size="sm" asChild>
+          <Button size="sm" asChild className="flex-1">
             <a href={book.file_url} target="_blank" rel="noreferrer">
-              Read
+              <ExternalLink className="mr-2 h-4 w-4" /> Read
             </a>
           </Button>
         )}
