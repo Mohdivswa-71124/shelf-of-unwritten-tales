@@ -20,6 +20,7 @@ const fetchCategories = async () => {
     .select("id, name");
     
   if (error) {
+    console.error("Error fetching categories:", error);
     throw new Error(error.message);
   }
   
@@ -37,8 +38,11 @@ const fetchBooks = async (categoryId: string | null = null) => {
   const { data, error } = await query.order("created_at", { ascending: false });
   
   if (error) {
+    console.error("Error fetching books:", error);
     throw new Error(error.message);
   }
+  
+  console.log("Books fetched:", data);
   
   // Transform the data to match our Book type
   return (data || []).map(item => ({
@@ -70,7 +74,7 @@ const Index = () => {
     queryFn: fetchCategories,
   });
   
-  const { data: books = [], isLoading } = useQuery({
+  const { data: books = [], isLoading, refetch: refetchBooks } = useQuery({
     queryKey: ["books", selectedCategoryId],
     queryFn: () => fetchBooks(selectedCategoryId === "all" ? null : selectedCategoryId),
   });

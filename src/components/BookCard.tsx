@@ -8,6 +8,7 @@ import { Heart, BookOpen, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Link } from "react-router-dom";
 
 interface BookCardProps {
   book: Book;
@@ -89,9 +90,9 @@ const BookCard = ({ book, onAddToFavorites }: BookCardProps) => {
         </Button>
         {book.file_url && (
           <Button size="sm" asChild className="flex-1">
-            <a href={book.file_url} target="_blank" rel="noreferrer">
-              <ExternalLink className="mr-2 h-4 w-4" /> Read
-            </a>
+            <Link to={`/read/${book.id}`}>
+              <BookOpen className="mr-2 h-4 w-4" /> Read
+            </Link>
           </Button>
         )}
       </CardFooter>
