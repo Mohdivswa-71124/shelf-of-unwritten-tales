@@ -22,9 +22,14 @@ const fetchFavorites = async () => {
   }
   
   // Transform the nested data structure to match the Book type
-  // Each item.books contains the book data
   return data.map(item => {
-    return item.books as unknown as Book;
+    const bookData = item.books as any;
+    return {
+      ...bookData,
+      category: bookData.genre, // Map genre to category for frontend compatibility
+      cover_image: bookData.cover_url, // Map cover_url to cover_image for frontend compatibility
+      user_id: bookData.created_by // Map created_by to user_id for frontend compatibility
+    } as Book;
   });
 };
 

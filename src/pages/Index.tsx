@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import BookGrid from "@/components/BookGrid";
@@ -12,7 +11,8 @@ const fetchBooks = async (category: string | null = null) => {
   let query = supabase.from("books").select("*");
   
   if (category && category !== "All Books") {
-    query = query.eq("category", category);
+    // Map frontend category to database genre field
+    query = query.eq("genre", category);
   }
   
   const { data, error } = await query.order("created_at", { ascending: false });
@@ -21,7 +21,13 @@ const fetchBooks = async (category: string | null = null) => {
     throw new Error(error.message);
   }
   
-  return data as Book[];
+  // Transform the data to match our Book type
+  return (data || []).map(item => ({
+    ...item,
+    category: item.genre, // Map genre to category for frontend compatibility
+    cover_image: item.cover_url, // Map cover_url to cover_image for frontend compatibility
+    user_id: item.created_by // Map created_by to user_id for frontend compatibility
+  })) as Book[];
 };
 
 const addToFavorites = async (bookId: string, userId: string) => {

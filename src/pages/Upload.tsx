@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -64,7 +63,7 @@ const Upload = () => {
         throw new Error("You must be logged in to upload books");
       }
       
-      let cover_image_url = null;
+      let cover_url = null;
       let file_url = null;
       
       // Upload cover image if provided
@@ -81,11 +80,11 @@ const Upload = () => {
           throw new Error(`Error uploading cover: ${coverUploadError.message}`);
         }
         
-        const { data: coverUrl } = supabase.storage
+        const { data: coverUrlData } = supabase.storage
           .from("book_covers")
           .getPublicUrl(coverFileName);
           
-        cover_image_url = coverUrl.publicUrl;
+        cover_url = coverUrlData.publicUrl;
       }
       
       // Upload book file
@@ -102,22 +101,26 @@ const Upload = () => {
           throw new Error(`Error uploading book: ${bookUploadError.message}`);
         }
         
-        const { data: bookUrl } = supabase.storage
+        const { data: bookUrlData } = supabase.storage
           .from("books")
           .getPublicUrl(bookFileName);
           
-        file_url = bookUrl.publicUrl;
+        file_url = bookUrlData.publicUrl;
       }
       
-      // Save book data to database
+      // Get the current year for publication_year
+      const currentYear = new Date().getFullYear();
+      
+      // Save book data to database, using fields that match the database schema
       const { error } = await supabase.from("books").insert({
         title: data.title,
         author: data.author,
         description: data.description,
-        category: data.category,
-        cover_image: cover_image_url,
+        genre: data.category, // Map category to genre
+        cover_url: cover_url, // Use cover_url instead of cover_image
         file_url,
-        user_id: user.id,
+        created_by: user.id,
+        publication_year: currentYear, // Required by database schema
       });
       
       if (error) {
