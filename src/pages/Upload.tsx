@@ -23,7 +23,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { BookFormData } from "@/types/book";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import Header from "@/components/Header";

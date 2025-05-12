@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import BookGrid from "@/components/BookGrid";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { Book } from "@/types/book";
 import Header from "@/components/Header";
 import { useToast } from "@/hooks/use-toast";

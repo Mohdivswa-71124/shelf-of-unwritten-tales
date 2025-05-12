@@ -1,10 +1,9 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { BookOpen, Heart, Upload, MessageSquare, LogOut } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 
 const Header = () => {
   const { data: session } = useQuery({
