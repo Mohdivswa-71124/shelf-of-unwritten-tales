@@ -116,6 +116,9 @@ const Header = () => {
                   <DropdownMenuItem className="text-muted-foreground">
                     {session.user.email}
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/profile")}>
+                    <User className="mr-2 h-4 w-4" /> Profile
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" /> Logout
                   </DropdownMenuItem>

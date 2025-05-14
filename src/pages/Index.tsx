@@ -13,11 +13,13 @@ import {
   TabsList, 
   TabsTrigger 
 } from "@/components/ui/tabs";
+import { motion } from "framer-motion";
 
 const fetchCategories = async () => {
   const { data, error } = await supabase
     .from("categories")
-    .select("id, name");
+    .select("id, name")
+    .order('name');
     
   if (error) {
     console.error("Error fetching categories:", error);
@@ -41,8 +43,6 @@ const fetchBooks = async (categoryId: string | null = null) => {
     console.error("Error fetching books:", error);
     throw new Error(error.message);
   }
-  
-  console.log("Books fetched:", data);
   
   // Transform the data to match our Book type
   return (data || []).map(item => ({
@@ -123,15 +123,25 @@ const Index = () => {
       <Header />
       
       <div className="container mx-auto px-4 py-8">
-        <div className="my-8 text-center">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="my-8 text-center"
+        >
           <h1 className="text-4xl font-bold mb-4">Welcome to Bookshelf</h1>
           <p className="text-muted-foreground max-w-2xl mx-auto">
             Discover, share, and enjoy your favorite books from our growing collection.
             Browse through different categories or upload your own books.
           </p>
-        </div>
+        </motion.div>
         
-        <div className="my-12 bg-primary/5 rounded-lg p-6 shadow-md">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="my-12 bg-primary/5 rounded-lg p-6 shadow-md"
+        >
           <h2 className="text-2xl font-bold mb-6 text-center">Browse by Category</h2>
           
           <Tabs 
@@ -140,31 +150,40 @@ const Index = () => {
             onValueChange={setSelectedCategoryId}
             className="w-full"
           >
-            <TabsList className="flex w-full overflow-x-auto py-2 mb-6">
-              <TabsTrigger value="all" className="flex-shrink-0 rounded-full">
-                All Books
-              </TabsTrigger>
-              {categories.map((category) => (
-                <TabsTrigger 
-                  key={category.id} 
-                  value={category.id}
-                  className="flex-shrink-0 rounded-full"
-                >
-                  {category.name}
+            <div className="relative overflow-hidden">
+              <TabsList className="flex w-full overflow-x-auto py-2 mb-6 no-scrollbar">
+                <TabsTrigger value="all" className="flex-shrink-0 rounded-full">
+                  All Books
                 </TabsTrigger>
-              ))}
-            </TabsList>
+                {categories.map((category) => (
+                  <TabsTrigger 
+                    key={category.id} 
+                    value={category.id}
+                    className="flex-shrink-0 rounded-full"
+                  >
+                    {category.name}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </div>
             
             <TabsContent value={selectedCategoryId} className="mt-6">
-              <h2 className="text-2xl font-bold mb-6">{selectedCategoryName}</h2>
-              <BookGrid 
-                books={books} 
-                isLoading={isLoading} 
-                onAddToFavorites={handleAddToFavorites}
-              />
+              <motion.div
+                key={selectedCategoryId}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3 }}
+              >
+                <h2 className="text-2xl font-bold mb-6">{selectedCategoryName}</h2>
+                <BookGrid 
+                  books={books} 
+                  isLoading={isLoading} 
+                  onAddToFavorites={handleAddToFavorites}
+                />
+              </motion.div>
             </TabsContent>
           </Tabs>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

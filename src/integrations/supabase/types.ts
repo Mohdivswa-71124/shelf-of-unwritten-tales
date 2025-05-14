@@ -9,6 +9,70 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      book_pages: {
+        Row: {
+          book_id: string | null
+          content: string
+          created_at: string | null
+          id: string
+          page_number: number
+        }
+        Insert: {
+          book_id?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          page_number: number
+        }
+        Update: {
+          book_id?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          page_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "book_pages_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bookmarks: {
+        Row: {
+          book_id: string | null
+          created_at: string | null
+          id: string
+          page_number: number
+          user_id: string | null
+        }
+        Insert: {
+          book_id?: string | null
+          created_at?: string | null
+          id?: string
+          page_number: number
+          user_id?: string | null
+        }
+        Update: {
+          book_id?: string | null
+          created_at?: string | null
+          id?: string
+          page_number?: number
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookmarks_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       books: {
         Row: {
           author: string
@@ -126,6 +190,41 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      reading_history: {
+        Row: {
+          book_id: string | null
+          completed_at: string | null
+          id: string
+          rating: number | null
+          review: string | null
+          user_id: string | null
+        }
+        Insert: {
+          book_id?: string | null
+          completed_at?: string | null
+          id?: string
+          rating?: number | null
+          review?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          book_id?: string | null
+          completed_at?: string | null
+          id?: string
+          rating?: number | null
+          review?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reading_history_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
