@@ -76,12 +76,20 @@ export const BookmarkButton = ({
       setIsProcessing(false);
     }
   };
+
+  // Determine button text to show reading progress
+  const displayText = existingBookmark 
+    ? isCurrentPageBookmarked 
+      ? buttonText 
+      : `Update Bookmark (Currently: Page ${existingBookmark.page_number})`
+    : buttonText;
   
   return (
     <Button
       variant={isCurrentPageBookmarked ? "default" : "outline"}
       onClick={handleBookmark}
       disabled={isProcessing}
+      className="rounded-full"
       {...props}
     >
       {isCurrentPageBookmarked ? (
@@ -89,7 +97,7 @@ export const BookmarkButton = ({
       ) : (
         <Bookmark className="mr-2 h-4 w-4" />
       )}
-      {buttonText}
+      {displayText}
     </Button>
   );
 };

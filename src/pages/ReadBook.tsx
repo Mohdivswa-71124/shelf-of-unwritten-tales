@@ -63,6 +63,7 @@ const ReadBook = () => {
   };
 
   const currentPageContent = bookPages.find(p => p.page_number === currentPage);
+  const totalPages = bookPages.length;
   
   if (isLoadingBook || isLoadingPages) {
     return (
@@ -89,7 +90,7 @@ const ReadBook = () => {
               <p className="text-muted-foreground mb-4">
                 The book you're looking for could not be found.
               </p>
-              <Button variant="default" onClick={() => navigate('/')}>
+              <Button variant="default" onClick={() => navigate('/')} className="rounded-full">
                 <ArrowLeft className="mr-2 h-4 w-4" /> Back to Books
               </Button>
             </CardContent>
@@ -105,10 +106,12 @@ const ReadBook = () => {
       
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center mb-6">
-          <Button variant="ghost" onClick={() => navigate(-1)} className="mr-2">
+          <Button variant="ghost" onClick={() => navigate(-1)} className="mr-2 rounded-full">
             <ArrowLeft className="mr-2 h-4 w-4" /> Back
           </Button>
-          <h1 className="text-3xl font-bold truncate">{book.title}</h1>
+          <h1 className="text-3xl font-bold truncate bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+            {book.title}
+          </h1>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -117,6 +120,7 @@ const ReadBook = () => {
               book={book}
               categoryName={categoryName}
               currentPage={currentPage}
+              totalPages={totalPages}
               bookmark={bookmark}
               readingHistory={readingHistory}
               userId={session?.user?.id}
@@ -133,7 +137,7 @@ const ReadBook = () => {
               userId={session?.user?.id}
               title={book.title}
               currentPage={currentPage}
-              totalPages={bookPages.length}
+              totalPages={totalPages}
               pageContent={currentPageContent}
               fileUrl={book.file_url}
               bookmark={bookmark}

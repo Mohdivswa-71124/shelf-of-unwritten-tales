@@ -11,7 +11,8 @@ import {
   BookCheck, 
   Bookmark, 
   BookText,
-  User
+  User,
+  LibraryBig
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -79,8 +80,9 @@ const Profile = () => {
         book: {
           ...item.books,
           cover_image: item.books.cover_url,
-          category: item.books.genre
-        } as Book
+          category: item.books.genre,
+          bookmark_page: item.page_number // Add bookmark page to book object
+        } as Book & { bookmark_page: number }
       }));
     },
     enabled: !!session?.user,
@@ -114,15 +116,15 @@ const Profile = () => {
   }
 
   const favoriteBooks = favorites.map(fav => fav.book);
-  const bookmarkedBooks = bookmarks.map(bookmark => ({ 
-    ...bookmark.book,
-    page_number: bookmark.page_number 
-  }));
+  const bookmarkedBooks = bookmarks.map(bookmark => bookmark.book);
   const completedBooks = readingHistory.map(history => ({
     ...history.book,
     completed_at: history.completed_at,
     rating: history.rating
   }));
+
+  // Filter stored books (with bookmarks)
+  const storedBooks = bookmarkedBooks.filter(book => book.bookmark_page);
 
   const getUserInitials = () => {
     if (!session?.user?.email) return "U";
@@ -136,19 +138,19 @@ const Profile = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
           <div className="flex items-center">
-            <Avatar className="h-16 w-16 mr-4">
-              <AvatarFallback className="bg-primary text-primary-foreground text-xl">
+            <Avatar className="h-16 w-16 mr-4 bg-primary text-primary-foreground">
+              <AvatarFallback className="text-xl">
                 {getUserInitials()}
               </AvatarFallback>
             </Avatar>
             <div>
-              <h1 className="text-3xl font-bold">My Profile</h1>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">My Profile</h1>
               <p className="text-muted-foreground">{session.user.email}</p>
             </div>
           </div>
           
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <Card className="p-3">
+            <Card className="p-3 bg-gradient-to-br from-purple-50 to-indigo-100 dark:from-purple-900/40 dark:to-indigo-900/30">
               <div className="flex items-center">
                 <BookText className="h-6 w-6 mr-2 text-primary" />
                 <div>
@@ -158,7 +160,7 @@ const Profile = () => {
               </div>
             </Card>
             
-            <Card className="p-3">
+            <Card className="p-3 bg-gradient-to-br from-blue-50 to-cyan-100 dark:from-blue-900/40 dark:to-cyan-900/30">
               <div className="flex items-center">
                 <Bookmark className="h-6 w-6 mr-2 text-primary" />
                 <div>
@@ -168,7 +170,7 @@ const Profile = () => {
               </div>
             </Card>
             
-            <Card className="p-3">
+            <Card className="p-3 bg-gradient-to-br from-emerald-50 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/30">
               <div className="flex items-center">
                 <BookCheck className="h-6 w-6 mr-2 text-primary" />
                 <div>
@@ -177,34 +179,47 @@ const Profile = () => {
                 </div>
               </div>
             </Card>
+
+            <Card className="p-3 bg-gradient-to-br from-amber-50 to-yellow-100 dark:from-amber-900/40 dark:to-yellow-900/30">
+              <div className="flex items-center">
+                <LibraryBig className="h-6 w-6 mr-2 text-primary" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Stored</p>
+                  <p className="text-xl font-bold">{storedBooks.length}</p>
+                </div>
+              </div>
+            </Card>
           </div>
         </div>
         
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-6">
-            <TabsTrigger value="history">
+          <TabsList className="mb-6 bg-secondary/50 p-1 rounded-full">
+            <TabsTrigger value="history" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full">
               <BookCheck className="mr-2 h-4 w-4" /> Reading History
             </TabsTrigger>
-            <TabsTrigger value="bookmarks">
+            <TabsTrigger value="bookmarks" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full">
               <Bookmark className="mr-2 h-4 w-4" /> Bookmarks
             </TabsTrigger>
-            <TabsTrigger value="favorites">
+            <TabsTrigger value="favorites" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full">
               <BookText className="mr-2 h-4 w-4" /> Favorites
             </TabsTrigger>
-            <TabsTrigger value="recommendations">
+            <TabsTrigger value="stored" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full">
+              <LibraryBig className="mr-2 h-4 w-4" /> Stored Books
+            </TabsTrigger>
+            <TabsTrigger value="recommendations" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full">
               <BookOpen className="mr-2 h-4 w-4" /> Recommendations
             </TabsTrigger>
           </TabsList>
           
           <TabsContent value="history">
             <Card>
-              <CardHeader>
+              <CardHeader className="bg-gradient-to-r from-purple-50 to-indigo-100 dark:from-purple-900/40 dark:to-indigo-900/30 rounded-t-lg">
                 <CardTitle>Reading History</CardTitle>
                 <CardDescription>
                   Books you've completed reading
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-6">
                 {isLoadingHistory ? (
                   <div className="flex justify-center py-8">
                     <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
@@ -216,7 +231,7 @@ const Profile = () => {
                     <p className="text-muted-foreground mb-4">
                       Mark books as completed to track your reading history
                     </p>
-                    <Button onClick={() => navigate("/")}>Browse Books</Button>
+                    <Button onClick={() => navigate("/")} className="rounded-full">Browse Books</Button>
                   </div>
                 ) : (
                   <HistoryTable books={completedBooks} />
@@ -227,13 +242,13 @@ const Profile = () => {
           
           <TabsContent value="bookmarks">
             <Card>
-              <CardHeader>
+              <CardHeader className="bg-gradient-to-r from-blue-50 to-cyan-100 dark:from-blue-900/40 dark:to-cyan-900/30 rounded-t-lg">
                 <CardTitle>Bookmarked Books</CardTitle>
                 <CardDescription>
                   Continue reading where you left off
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-6">
                 {isLoadingBookmarks ? (
                   <div className="flex justify-center py-8">
                     <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
@@ -245,13 +260,13 @@ const Profile = () => {
                     <p className="text-muted-foreground mb-4">
                       Bookmark pages as you read to continue later
                     </p>
-                    <Button onClick={() => navigate("/")}>Browse Books</Button>
+                    <Button onClick={() => navigate("/")} className="rounded-full">Browse Books</Button>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 gap-4">
                     {bookmarkedBooks.map((book) => (
-                      <Card key={book.id} className="flex overflow-hidden">
-                        <div className="w-24 h-32 bg-muted shrink-0">
+                      <Card key={book.id} className="flex overflow-hidden book-card bg-gradient-to-r from-blue-50 to-cyan-100 dark:from-blue-900/40 dark:to-cyan-900/30">
+                        <div className="w-24 h-32 bg-muted shrink-0 m-3 rounded overflow-hidden">
                           {book.cover_image || book.cover_url ? (
                             <img
                               src={book.cover_image || book.cover_url}
@@ -267,10 +282,11 @@ const Profile = () => {
                         <div className="p-4 flex-grow">
                           <h3 className="font-semibold mb-1">{book.title}</h3>
                           <p className="text-sm text-muted-foreground mb-2">By {book.author}</p>
-                          <p className="text-sm mb-3">
-                            <Bookmark className="inline h-3 w-3 mr-1" /> Page {book.page_number}
+                          <p className="text-sm mb-3 flex items-center">
+                            <Bookmark className="inline h-3 w-3 mr-1 text-primary" /> 
+                            <span className="font-medium">Current page:</span> {book.bookmark_page}
                           </p>
-                          <Button size="sm" onClick={() => navigate(`/read/${book.id}`)}>
+                          <Button size="sm" onClick={() => navigate(`/read/${book.id}`)} className="rounded-full">
                             Continue Reading
                           </Button>
                         </div>
@@ -284,13 +300,13 @@ const Profile = () => {
           
           <TabsContent value="favorites">
             <Card>
-              <CardHeader>
+              <CardHeader className="bg-gradient-to-r from-emerald-50 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/30 rounded-t-lg">
                 <CardTitle>Favorite Books</CardTitle>
                 <CardDescription>
                   Books you've added to your favorites
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-6">
                 {isLoadingFavorites ? (
                   <div className="flex justify-center py-8">
                     <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
@@ -302,10 +318,40 @@ const Profile = () => {
                     <p className="text-muted-foreground mb-4">
                       Add books to your favorites for easy access
                     </p>
-                    <Button onClick={() => navigate("/")}>Browse Books</Button>
+                    <Button onClick={() => navigate("/")} className="rounded-full">Browse Books</Button>
                   </div>
                 ) : (
                   <BookGrid books={favoriteBooks} />
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          {/* New Stored Books Tab */}
+          <TabsContent value="stored">
+            <Card>
+              <CardHeader className="bg-gradient-to-r from-amber-50 to-yellow-100 dark:from-amber-900/40 dark:to-yellow-900/30 rounded-t-lg">
+                <CardTitle>Stored Books</CardTitle>
+                <CardDescription>
+                  Books you're currently reading with saved progress
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6">
+                {isLoadingBookmarks ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+                  </div>
+                ) : storedBooks.length === 0 ? (
+                  <div className="text-center py-12">
+                    <LibraryBig className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
+                    <h3 className="text-lg font-medium mb-1">No stored books yet</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Books you're reading will appear here with your reading progress
+                    </p>
+                    <Button onClick={() => navigate("/")} className="rounded-full">Browse Books</Button>
+                  </div>
+                ) : (
+                  <BookGrid books={storedBooks} isStored={true} />
                 )}
               </CardContent>
             </Card>

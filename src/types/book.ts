@@ -13,6 +13,8 @@ export interface Book {
   created_by?: string;  // From database
   created_at?: string;
   publication_year?: number; // From database
+  isPublic?: boolean; // For books from public APIs
+  bookmark_page?: number; // For stored books with reading progress
 }
 
 export interface BookFormData {

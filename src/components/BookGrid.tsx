@@ -2,18 +2,24 @@
 import React from "react";
 import BookCard from "./BookCard";
 import { Book } from "@/types/book";
+import { motion } from "framer-motion";
 
 interface BookGridProps {
   books: Book[];
   isLoading?: boolean;
   onAddToFavorites?: (bookId: string) => void;
+  isStored?: boolean;
 }
 
-const BookGrid = ({ books, isLoading, onAddToFavorites }: BookGridProps) => {
+const BookGrid = ({ books, isLoading, onAddToFavorites, isStored = false }: BookGridProps) => {
+  const gradientClasses = ["card-gradient-1", "card-gradient-2", "card-gradient-3", "card-gradient-4", "card-gradient-5"];
+  
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div key={i} className="h-96 rounded-lg overflow-hidden shadow-md relative loading-shimmer" />
+        ))}
       </div>
     );
   }
@@ -28,12 +34,20 @@ const BookGrid = ({ books, isLoading, onAddToFavorites }: BookGridProps) => {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-      {books.map((book) => (
-        <BookCard
+      {books.map((book, index) => (
+        <motion.div
           key={book.id}
-          book={book}
-          onAddToFavorites={onAddToFavorites}
-        />
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: index * 0.05 }}
+        >
+          <BookCard
+            book={book}
+            onAddToFavorites={onAddToFavorites}
+            gradientClass={gradientClasses[index % gradientClasses.length]}
+            isStored={isStored}
+          />
+        </motion.div>
       ))}
     </div>
   );
