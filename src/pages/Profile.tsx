@@ -17,7 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/profile/UserAvatar";
 import { HistoryTable } from "@/components/HistoryTable";
 import { BookRecommendations } from "@/components/BookRecommendations";
 
@@ -40,6 +40,22 @@ const Profile = () => {
       navigate("/login");
     }
   }, [session, navigate]);
+
+  // Fetch user's profile data
+  const { data: profile } = useQuery({
+    queryKey: ["profile", session?.user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", session!.user.id)
+        .single();
+        
+      if (error && error.code !== "PGRST116") throw error;
+      return data;
+    },
+    enabled: !!session?.user,
+  });
 
   // Fetch user's reading history
   const { data: readingHistory = [], isLoading: isLoadingHistory } = useQuery({
@@ -65,7 +81,7 @@ const Profile = () => {
   });
 
   // Fetch user's bookmarks
-  const { data: bookmarks = [], isLoading: isLoadingBookmarks } = useQuery({
+  const { data: bookmarks = [], isLoading: isLoadingBookmarks, refetch: refetchBookmarks } = useQuery({
     queryKey: ["bookmarks", session?.user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -81,8 +97,9 @@ const Profile = () => {
           ...item.books,
           cover_image: item.books.cover_url,
           category: item.books.genre,
-          bookmark_page: item.page_number // Add bookmark page to book object
-        } as Book & { bookmark_page: number }
+          bookmark_page: item.page_number, // Add bookmark page to book object
+          bookmark_id: item.id // Add bookmark id for deletion
+        } as Book & { bookmark_page: number, bookmark_id: string }
       }));
     },
     enabled: !!session?.user,
@@ -126,11 +143,6 @@ const Profile = () => {
   // Filter stored books (with bookmarks)
   const storedBooks = bookmarkedBooks.filter(book => book.bookmark_page);
 
-  const getUserInitials = () => {
-    if (!session?.user?.email) return "U";
-    return session.user.email.substring(0, 2).toUpperCase();
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -138,13 +150,15 @@ const Profile = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
           <div className="flex items-center">
-            <Avatar className="h-16 w-16 mr-4 bg-primary text-primary-foreground">
-              <AvatarFallback className="text-xl">
-                {getUserInitials()}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">My Profile</h1>
+            <UserAvatar 
+              userId={session.user.id}
+              email={session.user.email}
+              avatarUrl={profile?.avatar_url}
+              size="xl"
+              editable={true}
+            />
+            <div className="ml-4">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">My Profile</h1>
               <p className="text-muted-foreground">{session.user.email}</p>
             </div>
           </div>
@@ -286,9 +300,34 @@ const Profile = () => {
                             <Bookmark className="inline h-3 w-3 mr-1 text-primary" /> 
                             <span className="font-medium">Current page:</span> {book.bookmark_page}
                           </p>
-                          <Button size="sm" onClick={() => navigate(`/read/${book.id}`)} className="rounded-full">
-                            Continue Reading
-                          </Button>
+                          <div className="flex items-center gap-2">
+                            <Button 
+                              size="sm" 
+                              onClick={() => navigate(`/read/${book.id}`)} 
+                              className="rounded-full bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700"
+                            >
+                              Continue Reading
+                            </Button>
+                            <Button 
+                              size="sm"
+                              variant="outline"
+                              className="rounded-full text-destructive hover:bg-destructive/10"
+                              onClick={async () => {
+                                try {
+                                  await supabase
+                                    .from("bookmarks")
+                                    .delete()
+                                    .eq("id", book.bookmark_id);
+                                    
+                                  refetchBookmarks();
+                                } catch (error) {
+                                  console.error("Failed to delete bookmark:", error);
+                                }
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                       </Card>
                     ))}
@@ -327,7 +366,7 @@ const Profile = () => {
             </Card>
           </TabsContent>
           
-          {/* New Stored Books Tab */}
+          {/* Stored Books Tab */}
           <TabsContent value="stored">
             <Card>
               <CardHeader className="bg-gradient-to-r from-amber-50 to-yellow-100 dark:from-amber-900/40 dark:to-yellow-900/30 rounded-t-lg">
@@ -351,7 +390,11 @@ const Profile = () => {
                     <Button onClick={() => navigate("/")} className="rounded-full">Browse Books</Button>
                   </div>
                 ) : (
-                  <BookGrid books={storedBooks} isStored={true} />
+                  <BookGrid 
+                    books={storedBooks} 
+                    isStored={true} 
+                    onBookDeleted={refetchBookmarks}
+                  />
                 )}
               </CardContent>
             </Card>

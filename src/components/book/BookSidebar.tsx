@@ -65,7 +65,7 @@ export const BookSidebar = ({
                 <span className="text-muted-foreground">Reading Progress</span>
                 <span className="font-medium">{Math.round(progress)}%</span>
               </div>
-              <Progress value={progress} className="h-2" />
+              <Progress value={progress} className="h-2 bg-background" />
               <div className="flex justify-between text-xs mt-1 text-muted-foreground">
                 <span>Page {currentPage}</span>
                 <span>of {totalPages}</span>

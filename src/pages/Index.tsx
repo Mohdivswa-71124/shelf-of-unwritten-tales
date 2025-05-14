@@ -16,6 +16,7 @@ import {
 import { motion } from "framer-motion";
 import { BookOpen, LibraryBig, BookText, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 // API endpoint for fetching books
 const GOOGLE_BOOKS_API = "https://www.googleapis.com/books/v1/volumes";
@@ -180,7 +181,7 @@ const Index = () => {
           transition={{ duration: 0.5 }}
           className="my-8 text-center"
         >
-          <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">Welcome to Bookshelf</h1>
+          <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">Welcome to Bookshelf</h1>
           <p className="text-muted-foreground max-w-2xl mx-auto">
             Discover, share, and enjoy your favorite books from our growing collection.
             Browse through different categories or upload your own books.
@@ -216,24 +217,27 @@ const Index = () => {
             onValueChange={setSelectedCategoryId}
             className="w-full"
           >
-            <div className="relative overflow-hidden mb-6">
-              <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-background to-transparent pointer-events-none" />
-              
-              <TabsList className="flex w-full overflow-x-auto py-2 no-scrollbar bg-transparent">
-                <TabsTrigger value="all" className="category-tab">
-                  All Books
-                </TabsTrigger>
-                {categories.map((category) => (
-                  <TabsTrigger 
-                    key={category.id} 
-                    value={category.id}
-                    className="category-tab"
-                  >
-                    {category.name}
+            <ScrollArea className="w-full">
+              <div className="relative mb-6 pb-1">
+                <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-background to-transparent pointer-events-none z-10" />
+                <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-background to-transparent pointer-events-none z-10" />
+                
+                <TabsList className="flex w-full overflow-x-auto py-2 px-12 flex-nowrap justify-start space-x-2 bg-transparent">
+                  <TabsTrigger value="all" className="category-tab flex-shrink-0">
+                    All Books
                   </TabsTrigger>
-                ))}
-              </TabsList>
-            </div>
+                  {categories.map((category) => (
+                    <TabsTrigger 
+                      key={category.id} 
+                      value={category.id}
+                      className="category-tab flex-shrink-0"
+                    >
+                      {category.name}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </div>
+            </ScrollArea>
             
             <TabsContent value={selectedCategoryId} className="mt-6">
               <motion.div

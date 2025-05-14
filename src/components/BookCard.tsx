@@ -4,21 +4,35 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Book } from "@/types/book";
 import { useToast } from "@/hooks/use-toast";
-import { Heart, BookOpen, ExternalLink } from "lucide-react";
+import { Heart, BookOpen, ExternalLink, Bookmark, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { DeleteStoredBookButton } from "./profile/DeleteStoredBookButton";
 
 interface BookCardProps {
-  book: Book;
+  book: Book & { bookmark_id?: string };
   onAddToFavorites?: (bookId: string) => void;
   gradientClass?: string;
   isStored?: boolean;
+  onBookDeleted?: () => void;
 }
 
-const BookCard = ({ book, onAddToFavorites, gradientClass = "card-gradient-1", isStored = false }: BookCardProps) => {
+const BookCard = ({ 
+  book, 
+  onAddToFavorites, 
+  gradientClass = "card-gradient-1", 
+  isStored = false,
+  onBookDeleted
+}: BookCardProps) => {
   const { toast } = useToast();
   const [isAddingToFavorites, setIsAddingToFavorites] = React.useState(false);
   
@@ -69,16 +83,25 @@ const BookCard = ({ book, onAddToFavorites, gradientClass = "card-gradient-1", i
             </div>
           )}
         </AspectRatio>
-        <div className="absolute top-5 right-5">
+        
+        <div className="absolute top-5 right-5 flex flex-col gap-2">
           <Badge variant="outline" className="bg-background/80 backdrop-blur-sm shadow-sm">
             {categoryName}
           </Badge>
+          
+          {isStored && book.bookmark_id && onBookDeleted && (
+            <DeleteStoredBookButton 
+              bookmarkId={book.bookmark_id}
+              bookTitle={book.title}
+              onDeleted={onBookDeleted}
+            />
+          )}
         </div>
         
         {isStored && book.bookmark_page && (
           <div className="absolute bottom-5 left-5">
-            <Badge variant="secondary" className="bg-primary text-primary-foreground">
-              Page {book.bookmark_page}
+            <Badge variant="secondary" className="bg-primary text-primary-foreground flex items-center gap-1">
+              <Bookmark className="h-3 w-3" /> Page {book.bookmark_page}
             </Badge>
           </div>
         )}
@@ -104,7 +127,7 @@ const BookCard = ({ book, onAddToFavorites, gradientClass = "card-gradient-1", i
           <Heart className="mr-2 h-4 w-4" /> Favorite
         </Button>
         {book.file_url && (
-          <Button size="sm" asChild className="flex-1 rounded-full">
+          <Button size="sm" asChild className="flex-1 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700">
             <Link to={`/read/${book.id}`}>
               <BookOpen className="mr-2 h-4 w-4" /> Read
             </Link>
