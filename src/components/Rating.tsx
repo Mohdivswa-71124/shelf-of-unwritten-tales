@@ -13,8 +13,9 @@ export const Rating: React.FC<RatingProps> = ({ value, onChange, isUpdating = fa
   return (
     <div className="flex items-center">
       <RatingStars 
-        value={value || 0} 
-        onChange={onChange} 
+        rating={value || 0} 
+        interactive={true}
+        onRatingChange={(newRating) => onChange(newRating)} 
       />
       {isUpdating && (
         <Loader2 className="ml-2 h-4 w-4 animate-spin text-muted-foreground" />

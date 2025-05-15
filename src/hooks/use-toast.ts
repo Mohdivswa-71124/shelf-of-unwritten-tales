@@ -79,7 +79,6 @@ const reducer = (state: State, action: Action): State => {
           t.id === toastId || toastId === undefined
             ? {
                 ...t,
-                open: false,
               }
             : t
         ),
@@ -150,7 +149,6 @@ export function useToast() {
         toast: {
           ...props,
           id,
-          open: true,
         },
       });
       return id;
