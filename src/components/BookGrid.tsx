@@ -9,9 +9,10 @@ interface BookGridProps {
   isLoading?: boolean;
   onAddToFavorites?: (bookId: string) => void;
   isStored?: boolean;
+  onBookDeleted?: () => void; // Added this prop to match what Profile.tsx is passing
 }
 
-const BookGrid = ({ books, isLoading, onAddToFavorites, isStored = false }: BookGridProps) => {
+const BookGrid = ({ books, isLoading, onAddToFavorites, isStored = false, onBookDeleted }: BookGridProps) => {
   const gradientClasses = ["card-gradient-1", "card-gradient-2", "card-gradient-3", "card-gradient-4", "card-gradient-5"];
   
   if (isLoading) {
@@ -46,6 +47,7 @@ const BookGrid = ({ books, isLoading, onAddToFavorites, isStored = false }: Book
             onAddToFavorites={onAddToFavorites}
             gradientClass={gradientClasses[index % gradientClasses.length]}
             isStored={isStored}
+            onBookDeleted={onBookDeleted}
           />
         </motion.div>
       ))}

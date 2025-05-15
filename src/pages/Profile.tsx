@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -377,7 +376,7 @@ const Profile = () => {
                   <BookGrid 
                     books={storedBooks} 
                     isStored={true} 
-                    onBookDeleted={refetchBookmarks}
+                    onBookDeleted={() => refetchBookmarks()}
                   />
                 )}
               </CardContent>
