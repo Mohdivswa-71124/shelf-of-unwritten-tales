@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { 
@@ -10,16 +11,13 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
-  Bookmark, 
   BookCheck, 
   Heart, 
-  BookOpenCheck,
   Book,
   Loader2
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { Rating } from "@/components/Rating";
 
 interface BookSidebarProps {
@@ -185,6 +183,75 @@ export const BookSidebar: React.FC<BookSidebarProps> = ({
     }
   };
 
+  // Pre-render UI elements that might be conditionally displayed
+  const favoriteButton = (
+    <Button
+      variant={isBookFavorited ? "default" : "outline"}
+      className="justify-start book-action-button"
+      onClick={handleAddToFavorites}
+      disabled={isAddingFavorite}
+    >
+      {isAddingFavorite ? (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Adding...
+        </>
+      ) : (
+        <>
+          <Heart className="mr-2 h-4 w-4" />
+          {isBookFavorited ? 'Unfavorite' : 'Favorite'}
+        </>
+      )}
+    </Button>
+  );
+
+  const completedButton = (
+    <Button
+      variant={isBookCompleted ? "default" : "outline"}
+      className="justify-start book-action-button"
+      onClick={handleMarkAsCompleted}
+      disabled={isMarkingCompleted}
+    >
+      {isMarkingCompleted ? (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Updating...
+        </>
+      ) : (
+        <>
+          <BookCheck className="mr-2 h-4 w-4" />
+          {isBookCompleted ? 'Mark as Unread' : 'Mark as Completed'}
+        </>
+      )}
+    </Button>
+  );
+
+  const ratingElement = (
+    <div>
+      <p className="text-sm font-medium">Rate this book:</p>
+      <Rating 
+        value={rating} 
+        onChange={handleRatingChange} 
+        isUpdating={isUpdatingRating}
+      />
+    </div>
+  );
+
+  const bookmarkFooter = (
+    <CardFooter className="justify-between items-center">
+      <p className="text-sm text-muted-foreground">
+        Bookmarked on page {bookmark?.page_number}
+      </p>
+      <Button 
+        size="sm" 
+        onClick={() => navigate(`/read/${book.id}`)}
+        className="book-action-button"
+      >
+        Continue Reading
+      </Button>
+    </CardFooter>
+  );
+
   return (
     <Card className="bg-secondary/70">
       <CardHeader>
@@ -206,73 +273,16 @@ export const BookSidebar: React.FC<BookSidebarProps> = ({
           
           {userId && (
             <>
-              <Button
-                variant={isBookFavorited ? "default" : "outline"}
-                className="justify-start book-action-button"
-                onClick={handleAddToFavorites}
-                disabled={isAddingFavorite}
-              >
-                {isAddingFavorite ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Adding...
-                  </>
-                ) : (
-                  <>
-                    <Heart className="mr-2 h-4 w-4" />
-                    {isBookFavorited ? 'Unfavorite' : 'Favorite'}
-                  </>
-                )}
-              </Button>
-              
-              <Button
-                variant={isBookCompleted ? "default" : "outline"}
-                className="justify-start book-action-button"
-                onClick={handleMarkAsCompleted}
-                disabled={isMarkingCompleted}
-              >
-                {isMarkingCompleted ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Updating...
-                  </>
-                ) : (
-                  <>
-                    <BookCheck className="mr-2 h-4 w-4" />
-                    {isBookCompleted ? 'Mark as Unread' : 'Mark as Completed'}
-                  </>
-                )}
-              </Button>
+              {favoriteButton}
+              {completedButton}
             </>
           )}
         </div>
         
-        {userId && (
-          <div>
-            <p className="text-sm font-medium">Rate this book:</p>
-            <Rating 
-              value={rating} 
-              onChange={handleRatingChange} 
-              isUpdating={isUpdatingRating}
-            />
-          </div>
-        )}
+        {userId && ratingElement}
       </CardContent>
       
-      {bookmark && userId && (
-        <CardFooter className="justify-between items-center">
-          <p className="text-sm text-muted-foreground">
-            Bookmarked on page {bookmark.page_number}
-          </p>
-          <Button 
-            size="sm" 
-            onClick={() => navigate(`/read/${book.id}`)}
-            className="book-action-button"
-          >
-            Continue Reading
-          </Button>
-        </CardFooter>
-      )}
+      {bookmark && userId && bookmarkFooter}
     </Card>
   );
 };

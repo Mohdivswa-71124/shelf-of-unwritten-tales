@@ -13,13 +13,20 @@ import NotFound from "./pages/NotFound";
 import ReadBook from "./pages/ReadBook";
 import Profile from "./pages/Profile";
 
-const queryClient = new QueryClient();
+// Create the query client outside of the component
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
@@ -31,6 +38,8 @@ const App = () => (
           <Route path="/profile" element={<Profile />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <Toaster />
+        <Sonner />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
