@@ -1,9 +1,10 @@
 
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import { BookOpen } from "lucide-react";
+import { BookOpen, AlertTriangle } from "lucide-react";
 import { BookPageContent } from "@/components/BookPageContent";
 import { PageNavigation } from "./PageNavigation";
 import { BookmarkButton } from "@/components/BookmarkButton";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface BookContentProps {
   bookId: string;
@@ -30,6 +31,9 @@ export const BookContent = ({
   onPageChange,
   onBookmarkUpdated
 }: BookContentProps) => {
+  // Check if the page content exists
+  const hasPageContent = pageContent && pageContent.content;
+  
   return (
     <div className="space-y-6">
       <Card className="mb-6">
@@ -44,7 +48,16 @@ export const BookContent = ({
         <CardContent>
           {totalPages > 0 ? (
             <div className="relative bg-white rounded-md shadow p-6 min-h-[400px]">
-              <BookPageContent content={pageContent?.content || "No content available for this page."} />
+              {hasPageContent ? (
+                <BookPageContent content={pageContent.content} />
+              ) : (
+                <Alert variant="destructive" className="mb-4 bg-destructive/10">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    This page content could not be found. The book may need to be reprocessed.
+                  </AlertDescription>
+                </Alert>
+              )}
             </div>
           ) : (
             fileUrl ? (

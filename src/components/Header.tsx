@@ -77,13 +77,13 @@ const Header = () => {
         
         <nav className="flex items-center space-x-1 md:space-x-4">
           <Link to="/">
-            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground hover:bg-gradient-to-r hover:from-purple-500 hover:to-pink-500 hover:text-white">
               Home
             </Button>
           </Link>
           
           <Link to="/contact">
-            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground hover:bg-gradient-to-r hover:from-purple-500 hover:to-pink-500 hover:text-white">
               <MessageSquare className="mr-2 h-4 w-4" /> Contact
             </Button>
           </Link>
@@ -91,13 +91,13 @@ const Header = () => {
           {session ? (
             <>
               <Link to="/favorites">
-                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground hover:bg-gradient-to-r hover:from-purple-500 hover:to-pink-500 hover:text-white">
                   <Heart className="mr-2 h-4 w-4" /> Favorites
                 </Button>
               </Link>
               
               <Link to="/upload">
-                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground hover:bg-gradient-to-r hover:from-purple-500 hover:to-pink-500 hover:text-white">
                   <Upload className="mr-2 h-4 w-4" /> Upload
                 </Button>
               </Link>

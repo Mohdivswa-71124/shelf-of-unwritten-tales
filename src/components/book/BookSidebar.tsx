@@ -1,14 +1,29 @@
-
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Book } from "@/types/book";
-import { BookCover } from "./BookCover";
-import { BookActions } from "./BookActions";
-import { ReadingStatus } from "./ReadingStatus";
-import { Progress } from "@/components/ui/progress";
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardHeader, 
+  CardTitle,
+  CardFooter
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { 
+  Bookmark, 
+  BookCheck, 
+  Heart, 
+  BookOpenCheck,
+  Book,
+  Loader2
+} from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
+import { Rating } from "@/components/Rating";
 
 interface BookSidebarProps {
-  book: Book;
+  book: any;
   categoryName: string;
   currentPage: number;
   totalPages: number;
@@ -19,76 +34,245 @@ interface BookSidebarProps {
   onHistoryUpdated: () => void;
 }
 
-export const BookSidebar = ({ 
-  book, 
-  categoryName, 
-  currentPage, 
+export const BookSidebar: React.FC<BookSidebarProps> = ({
+  book,
+  categoryName,
+  currentPage,
   totalPages,
-  bookmark, 
+  bookmark,
   readingHistory,
   userId,
   onBookmarkUpdated,
   onHistoryUpdated
-}: BookSidebarProps) => {
-  // Calculate reading progress
-  const progress = totalPages > 0 ? (currentPage / totalPages) * 100 : 0;
-  
+}) => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [isAddingFavorite, setIsAddingFavorite] = React.useState(false);
+  const [isMarkingCompleted, setIsMarkingCompleted] = React.useState(false);
+  const [rating, setRating] = React.useState<number | null>(readingHistory?.rating || null);
+  const [isUpdatingRating, setIsUpdatingRating] = React.useState(false);
+
+  const isBookFavorited = !!readingHistory?.is_favorite;
+  const isBookCompleted = !!readingHistory?.completed_at;
+
+  const handleAddToFavorites = async () => {
+    if (!userId) {
+      toast({
+        title: "Authentication required",
+        description: "Please login to add books to favorites",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsAddingFavorite(true);
+    try {
+      const { error } = await supabase
+        .from("reading_history")
+        .upsert(
+          { 
+            user_id: userId, 
+            book_id: book.id, 
+            is_favorite: !isBookFavorited 
+          },
+          { onConflict: 'user_id, book_id' }
+        );
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      toast({
+        title: "Success",
+        description: isBookFavorited ? "Removed from favorites" : "Added to favorites",
+      });
+      onHistoryUpdated();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update favorites",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAddingFavorite(false);
+    }
+  };
+
+  const handleMarkAsCompleted = async () => {
+    if (!userId) {
+      toast({
+        title: "Authentication required",
+        description: "Please login to mark books as completed",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsMarkingCompleted(true);
+    try {
+      const { error } = await supabase
+        .from("reading_history")
+        .upsert(
+          { 
+            user_id: userId, 
+            book_id: book.id, 
+            completed_at: isBookCompleted ? null : new Date().toISOString() 
+          },
+          { onConflict: 'user_id, book_id' }
+        );
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      toast({
+        title: "Success",
+        description: isBookCompleted ? "Marked as unread" : "Marked as completed",
+      });
+      onHistoryUpdated();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update reading status",
+        variant: "destructive",
+      });
+    } finally {
+      setIsMarkingCompleted(false);
+    }
+  };
+
+  const handleRatingChange = async (newRating: number | null) => {
+    if (!userId) {
+      toast({
+        title: "Authentication required",
+        description: "Please login to rate books",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUpdatingRating(true);
+    try {
+      const { error } = await supabase
+        .from("reading_history")
+        .upsert(
+          { 
+            user_id: userId, 
+            book_id: book.id, 
+            rating: newRating 
+          },
+          { onConflict: 'user_id, book_id' }
+        );
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      toast({
+        title: "Success",
+        description: "Rating updated successfully",
+      });
+      setRating(newRating);
+      onHistoryUpdated();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update rating",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdatingRating(false);
+    }
+  };
+
   return (
-    <div className="space-y-4">
-      <Card className="overflow-hidden border-0 shadow-md bg-gradient-to-br from-secondary/70 to-background">
-        <CardContent className="p-4">
-          <BookCover 
-            coverUrl={book.cover_image || book.cover_url} 
-            title={book.title} 
-          />
+    <Card className="bg-secondary/70">
+      <CardHeader>
+        <CardTitle className="text-lg font-semibold truncate">{book.title}</CardTitle>
+        <CardDescription>
+          Category: {categoryName}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex flex-col space-y-2">
+          <Button
+            variant="outline"
+            className="justify-start book-action-button"
+            onClick={() => navigate(`/read/${book.id}`)}
+          >
+            <Book className="mr-2 h-4 w-4" />
+            {book.file_url ? 'Open Book' : 'Read Book'}
+          </Button>
           
-          <div className="mt-4 space-y-4">
-            <div>
-              <h3 className="font-medium text-muted-foreground">Author</h3>
-              <p className="font-medium">{book.author}</p>
-            </div>
-            
-            {book.publication_year && (
-              <div>
-                <h3 className="font-medium text-muted-foreground">Published</h3>
-                <p>{book.publication_year}</p>
-              </div>
-            )}
-            
-            <div>
-              <h3 className="font-medium text-muted-foreground">Category</h3>
-              <Badge variant="outline" className="bg-primary/10">{categoryName}</Badge>
-            </div>
-            
-            <div className="pt-2">
-              <div className="flex justify-between text-sm mb-1">
-                <span className="text-muted-foreground">Reading Progress</span>
-                <span className="font-medium">{Math.round(progress)}%</span>
-              </div>
-              <Progress value={progress} className="h-2 bg-background" />
-              <div className="flex justify-between text-xs mt-1 text-muted-foreground">
-                <span>Page {currentPage}</span>
-                <span>of {totalPages}</span>
-              </div>
-            </div>
-            
-            <BookActions 
-              bookId={book.id}
-              userId={userId}
-              currentPage={currentPage}
-              bookmark={bookmark}
-              readingHistory={readingHistory}
-              fileUrl={book.file_url}
-              onBookmarkUpdated={onBookmarkUpdated}
-              onHistoryUpdated={onHistoryUpdated}
+          {userId && (
+            <>
+              <Button
+                variant={isBookFavorited ? "default" : "outline"}
+                className="justify-start book-action-button"
+                onClick={handleAddToFavorites}
+                disabled={isAddingFavorite}
+              >
+                {isAddingFavorite ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Adding...
+                  </>
+                ) : (
+                  <>
+                    <Heart className="mr-2 h-4 w-4" />
+                    {isBookFavorited ? 'Unfavorite' : 'Favorite'}
+                  </>
+                )}
+              </Button>
+              
+              <Button
+                variant={isBookCompleted ? "default" : "outline"}
+                className="justify-start book-action-button"
+                onClick={handleMarkAsCompleted}
+                disabled={isMarkingCompleted}
+              >
+                {isMarkingCompleted ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    <BookCheck className="mr-2 h-4 w-4" />
+                    {isBookCompleted ? 'Mark as Unread' : 'Mark as Completed'}
+                  </>
+                )}
+              </Button>
+            </>
+          )}
+        </div>
+        
+        {userId && (
+          <div>
+            <p className="text-sm font-medium">Rate this book:</p>
+            <Rating 
+              value={rating} 
+              onChange={handleRatingChange} 
+              isUpdating={isUpdatingRating}
             />
           </div>
-        </CardContent>
-      </Card>
+        )}
+      </CardContent>
       
-      {readingHistory && (
-        <ReadingStatus readingHistory={readingHistory} />
+      {bookmark && userId && (
+        <CardFooter className="justify-between items-center">
+          <p className="text-sm text-muted-foreground">
+            Bookmarked on page {bookmark.page_number}
+          </p>
+          <Button 
+            size="sm" 
+            onClick={() => navigate(`/read/${book.id}`)}
+            className="book-action-button"
+          >
+            Continue Reading
+          </Button>
+        </CardFooter>
       )}
-    </div>
+    </Card>
   );
 };

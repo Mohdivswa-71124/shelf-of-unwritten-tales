@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,7 +26,7 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState("history");
 
   // Get user session
-  const { data: session } = useQuery({
+  const { data: session, isLoading: isLoadingSession } = useQuery({
     queryKey: ["session"],
     queryFn: async () => {
       const { data } = await supabase.auth.getSession();
@@ -35,12 +36,24 @@ const Profile = () => {
 
   // Redirect to login if not authenticated
   React.useEffect(() => {
-    if (session === null) {
+    if (!isLoadingSession && session === null) {
       navigate("/login");
     }
-  }, [session, navigate]);
+  }, [session, navigate, isLoadingSession]);
 
-  // Fetch user's reading history
+  // If still loading session, show loading state
+  if (isLoadingSession) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="container mx-auto px-4 py-8 flex justify-center items-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      </div>
+    );
+  }
+
+  // Only load the rest of the data if we have a session
   const { data: readingHistory = [], isLoading: isLoadingHistory } = useQuery({
     queryKey: ["reading-history", session?.user?.id],
     queryFn: async () => {
@@ -112,7 +125,7 @@ const Profile = () => {
   });
 
   if (!session) {
-    return null; // Will redirect to login
+    return null; // Will redirect to login via useEffect
   }
 
   const favoriteBooks = favorites.map(fav => fav.book);
