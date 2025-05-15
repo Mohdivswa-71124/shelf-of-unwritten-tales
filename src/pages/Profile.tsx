@@ -11,7 +11,6 @@ import {
   BookCheck, 
   Bookmark, 
   BookText,
-  User,
   LibraryBig
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,6 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserAvatar } from "@/components/profile/UserAvatar";
 import { HistoryTable } from "@/components/HistoryTable";
 import { BookRecommendations } from "@/components/BookRecommendations";
+import { Trash2 } from "lucide-react";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -40,22 +40,6 @@ const Profile = () => {
       navigate("/login");
     }
   }, [session, navigate]);
-
-  // Fetch user's profile data
-  const { data: profile } = useQuery({
-    queryKey: ["profile", session?.user?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", session!.user.id)
-        .single();
-        
-      if (error && error.code !== "PGRST116") throw error;
-      return data;
-    },
-    enabled: !!session?.user,
-  });
 
   // Fetch user's reading history
   const { data: readingHistory = [], isLoading: isLoadingHistory } = useQuery({
@@ -153,7 +137,7 @@ const Profile = () => {
             <UserAvatar 
               userId={session.user.id}
               email={session.user.email}
-              avatarUrl={profile?.avatar_url}
+              avatarUrl={session.user.user_metadata?.avatar_url}
               size="xl"
               editable={true}
             />

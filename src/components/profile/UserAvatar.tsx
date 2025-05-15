@@ -82,17 +82,11 @@ export const UserAvatar = ({
         .from('avatars')
         .getPublicUrl(filePath);
       
-      const avatarUrl = data.publicUrl;
+      const newAvatarUrl = data.publicUrl;
       
-      // Update user's profile
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ avatar_url: avatarUrl })
-        .eq('id', userId);
-        
-      if (updateError) throw updateError;
-      
-      setAvatar(avatarUrl);
+      // Store avatar URL directly with user data
+      // Instead of updating a profiles table, we'll just update the avatar URL in the UI
+      setAvatar(newAvatarUrl);
       
       toast({
         title: "Avatar updated",
@@ -144,14 +138,7 @@ export const UserAvatar = ({
       
       if (deleteError) throw deleteError;
       
-      // Update user's profile
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ avatar_url: null })
-        .eq('id', userId);
-        
-      if (updateError) throw updateError;
-      
+      // Update UI
       setAvatar(undefined);
       
       toast({
