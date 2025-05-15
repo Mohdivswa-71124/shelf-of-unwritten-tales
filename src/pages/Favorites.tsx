@@ -7,7 +7,7 @@ import { Book } from "@/types/book";
 import Header from "@/components/Header";
 import { useNavigate } from "react-router-dom";
 import { BookOpen } from "lucide-react";
-import { toast } from "@/components/ui/use-toast"; // Changed to use the correct toast import
+import { toast } from "sonner";
 
 const fetchFavorites = async () => {
   const { data: { user } } = await supabase.auth.getUser();
@@ -51,10 +51,12 @@ const Favorites = () => {
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!sessionLoading && session === null) {
-      toast({
-        title: "Authentication required",
+      toast("Authentication required", {
         description: "Please login to view your favorites",
-        variant: "destructive",
+        action: {
+          label: "Login",
+          onClick: () => navigate("/login"),
+        },
       });
       navigate("/login");
     }
