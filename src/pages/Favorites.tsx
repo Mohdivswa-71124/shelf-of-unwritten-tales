@@ -52,7 +52,6 @@ const Favorites = () => {
   useEffect(() => {
     if (!sessionLoading && session === null) {
       toast({
-        title: "Authentication required",
         description: "Please login to view your favorites",
         variant: "destructive",
       });
