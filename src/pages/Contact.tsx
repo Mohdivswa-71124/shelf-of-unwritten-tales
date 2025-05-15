@@ -92,7 +92,7 @@ const Contact = () => {
                         <User className="mr-2 h-4 w-4" /> Name
                       </FormLabel>
                       <FormControl>
-                        <Input placeholder="Your name" {...field} />
+                        <Input placeholder="Your name" {...field} className="text-foreground" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -108,7 +108,7 @@ const Contact = () => {
                         <Mail className="mr-2 h-4 w-4" /> Email
                       </FormLabel>
                       <FormControl>
-                        <Input placeholder="your.email@example.com" type="email" {...field} />
+                        <Input placeholder="your.email@example.com" type="email" {...field} className="text-foreground" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -126,7 +126,7 @@ const Contact = () => {
                       <FormControl>
                         <Textarea 
                           placeholder="Enter your message here..." 
-                          className="min-h-32" 
+                          className="min-h-32 text-foreground" 
                           {...field} 
                         />
                       </FormControl>

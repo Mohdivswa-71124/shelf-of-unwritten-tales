@@ -7,6 +7,7 @@ import { Book } from "@/types/book";
 import Header from "@/components/Header";
 import { useNavigate } from "react-router-dom";
 import { BookOpen } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 const fetchFavorites = async () => {
   const { data: { user } } = await supabase.auth.getUser();
@@ -38,7 +39,8 @@ const fetchFavorites = async () => {
 const Favorites = () => {
   const navigate = useNavigate();
   
-  const { data: session } = useQuery({
+  // Get the current session
+  const { data: session, isLoading: sessionLoading } = useQuery({
     queryKey: ["session"],
     queryFn: async () => {
       const { data } = await supabase.auth.getSession();
@@ -48,10 +50,15 @@ const Favorites = () => {
   
   // Redirect to login if not authenticated
   useEffect(() => {
-    if (session === null) {
+    if (!sessionLoading && session === null) {
+      toast({
+        title: "Authentication required",
+        description: "Please login to view your favorites",
+        variant: "destructive",
+      });
       navigate("/login");
     }
-  }, [session, navigate]);
+  }, [session, navigate, sessionLoading]);
   
   const { data: books = [], isLoading } = useQuery({
     queryKey: ["favorites"],
@@ -59,8 +66,16 @@ const Favorites = () => {
     enabled: !!session,
   });
 
+  // Don't render anything while checking authentication
+  if (sessionLoading) {
+    return <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="animate-spin h-10 w-10 border-4 border-primary border-t-transparent rounded-full"></div>
+    </div>;
+  }
+
+  // If not authenticated, don't render content (will redirect)
   if (!session) {
-    return null; // Will redirect to login
+    return null;
   }
 
   return (

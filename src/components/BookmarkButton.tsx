@@ -27,7 +27,7 @@ export const BookmarkButton = ({
   currentPage, 
   existingBookmark,
   buttonText = "Bookmark Page",
-  showDelete = false,
+  showDelete = true, // Default to true to show delete option
   onBookmarkUpdated,
   ...props 
 }: BookmarkButtonProps) => {

@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,7 +26,7 @@ const Auth = () => {
   const navigate = useNavigate();
   
   // Check if user is already logged in
-  const { data: session } = useQuery({
+  const { data: session, isLoading: sessionLoading } = useQuery({
     queryKey: ["session"],
     queryFn: async () => {
       const { data } = await supabase.auth.getSession();
@@ -35,11 +35,11 @@ const Auth = () => {
   });
 
   // Redirect if already authenticated
-  React.useEffect(() => {
-    if (session) {
+  useEffect(() => {
+    if (!sessionLoading && session) {
       navigate("/");
     }
-  }, [session, navigate]);
+  }, [session, navigate, sessionLoading]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,6 +101,15 @@ const Auth = () => {
     }
   };
 
+  // Show loading indicator while checking session
+  if (sessionLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="animate-spin h-10 w-10 border-4 border-primary border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-background to-secondary/10 p-4">
       <div className="w-full max-w-md">
@@ -135,6 +144,7 @@ const Auth = () => {
                       placeholder="your@email.com" 
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
+                      className="text-foreground"
                       required
                     />
                   </div>
@@ -147,6 +157,7 @@ const Auth = () => {
                       type="password" 
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
+                      className="text-foreground"
                       required
                     />
                   </div>
@@ -178,6 +189,7 @@ const Auth = () => {
                       placeholder="your@email.com" 
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
+                      className="text-foreground"
                       required
                     />
                   </div>
@@ -189,6 +201,7 @@ const Auth = () => {
                       placeholder="******" 
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
+                      className="text-foreground"
                       required
                     />
                   </div>
