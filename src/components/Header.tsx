@@ -1,75 +1,65 @@
-
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { 
-  BookOpen, 
-  Heart, 
-  Upload, 
-  MessageSquare, 
-  LogOut, 
-  LogIn,
-  User
-} from "lucide-react";
+import { BookOpen, Heart, Upload, MessageSquare, LogOut, LogIn, User } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-
 const Header = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
-  
-  const { data: session, refetch } = useQuery({
+  const {
+    toast
+  } = useToast();
+  const {
+    data: session,
+    refetch
+  } = useQuery({
     queryKey: ["session"],
     queryFn: async () => {
-      const { data } = await supabase.auth.getSession();
+      const {
+        data
+      } = await supabase.auth.getSession();
       return data.session;
-    },
+    }
   });
 
   // Set up auth state listener
   React.useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+    const {
+      data: {
+        subscription
+      }
+    } = supabase.auth.onAuthStateChange(() => {
       refetch();
     });
-
     return () => {
       subscription.unsubscribe();
     };
   }, [refetch]);
-
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
       toast({
         title: "Logged out",
-        description: "You have been successfully logged out.",
+        description: "You have been successfully logged out."
       });
       navigate("/");
     } catch (error: any) {
       toast({
         title: "Error",
         description: error.message || "Failed to log out",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
   const getUserInitials = () => {
     if (!session?.user?.email) return "U";
     return session.user.email.substring(0, 2).toUpperCase();
   };
-
-  return (
-    <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center">
+  return <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center bg-teal-950">
         <Link to="/" className="flex items-center text-2xl font-bold text-primary mb-4 sm:mb-0">
           <BookOpen className="mr-2" size={24} />
           <span>Bookshelf</span>
@@ -88,8 +78,7 @@ const Header = () => {
             </Button>
           </Link>
           
-          {session ? (
-            <>
+          {session ? <>
               <Link to="/favorites">
                 <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground hover:bg-gradient-to-r hover:from-purple-500 hover:to-pink-500 hover:text-white">
                   <Heart className="mr-2 h-4 w-4" /> Favorites
@@ -124,18 +113,13 @@ const Header = () => {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-            </>
-          ) : (
-            <Link to="/login">
+            </> : <Link to="/login">
               <Button>
                 <LogIn className="mr-2 h-4 w-4" /> Login
               </Button>
-            </Link>
-          )}
+            </Link>}
         </nav>
       </div>
-    </header>
-  );
+    </header>;
 };
-
 export default Header;
