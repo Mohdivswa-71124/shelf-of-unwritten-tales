@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,42 +9,43 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { 
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { DeleteStoredBookButton } from "./profile/DeleteStoredBookButton";
-
 interface BookCardProps {
-  book: Book & { bookmark_id?: string };
+  book: Book & {
+    bookmark_id?: string;
+  };
   onAddToFavorites?: (bookId: string) => void;
   gradientClass?: string;
   isStored?: boolean;
   onBookDeleted?: () => void;
 }
-
-const BookCard = ({ 
-  book, 
-  onAddToFavorites, 
-  gradientClass = "card-gradient-1", 
+const BookCard = ({
+  book,
+  onAddToFavorites,
+  gradientClass = "card-gradient-1",
   isStored = false,
   onBookDeleted
 }: BookCardProps) => {
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const [isAddingToFavorites, setIsAddingToFavorites] = React.useState(false);
-  
+
   // Get categories to display proper name
-  const { data: categories = [] } = useQuery({
+  const {
+    data: categories = []
+  } = useQuery({
     queryKey: ["categories"],
     queryFn: async () => {
-      const { data } = await supabase.from("categories").select("*");
+      const {
+        data
+      } = await supabase.from("categories").select("*");
       return data || [];
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5 // 5 minutes
   });
-  
+
   // Find category name from genre ID if available
   const categoryName = React.useMemo(() => {
     if (book.genre && categories.length > 0) {
@@ -54,11 +54,9 @@ const BookCard = ({
     }
     return book.category || "Uncategorized";
   }, [book, categories]);
-
   const handleAddToFavorites = () => {
     if (onAddToFavorites) {
       setIsAddingToFavorites(true);
-      
       try {
         onAddToFavorites(book.id);
       } finally {
@@ -66,22 +64,12 @@ const BookCard = ({
       }
     }
   };
-
-  return (
-    <Card className={`overflow-hidden h-full flex flex-col book-card ${gradientClass}`}>
+  return <Card className={`overflow-hidden h-full flex flex-col book-card ${gradientClass}`}>
       <div className="relative p-3">
-        <AspectRatio ratio={2/3} className="bg-muted rounded-md overflow-hidden">
-          {book.cover_image || book.cover_url ? (
-            <img
-              src={book.cover_image || book.cover_url}
-              alt={book.title}
-              className="object-cover w-full h-full rounded-md"
-            />
-          ) : (
-            <div className="flex items-center justify-center h-full bg-primary/5">
+        <AspectRatio ratio={2 / 3} className="bg-muted rounded-md overflow-hidden">
+          {book.cover_image || book.cover_url ? <img src={book.cover_image || book.cover_url} alt={book.title} className="object-cover w-full h-full rounded-md" /> : <div className="flex items-center justify-center h-full bg-primary/5">
               <BookOpen size={48} className="text-primary/50" />
-            </div>
-          )}
+            </div>}
         </AspectRatio>
         
         <div className="absolute top-5 right-5 flex flex-col gap-2">
@@ -89,22 +77,14 @@ const BookCard = ({
             {categoryName}
           </Badge>
           
-          {isStored && book.bookmark_id && onBookDeleted && (
-            <DeleteStoredBookButton 
-              bookmarkId={book.bookmark_id}
-              bookTitle={book.title}
-              onDeleted={onBookDeleted}
-            />
-          )}
+          {isStored && book.bookmark_id && onBookDeleted && <DeleteStoredBookButton bookmarkId={book.bookmark_id} bookTitle={book.title} onDeleted={onBookDeleted} />}
         </div>
         
-        {isStored && book.bookmark_page && (
-          <div className="absolute bottom-5 left-5">
+        {isStored && book.bookmark_page && <div className="absolute bottom-5 left-5">
             <Badge variant="secondary" className="bg-primary text-primary-foreground flex items-center gap-1">
               <Bookmark className="h-3 w-3" /> Page {book.bookmark_page}
             </Badge>
-          </div>
-        )}
+          </div>}
       </div>
       
       <CardContent className="flex-grow p-4 pt-1">
@@ -117,25 +97,15 @@ const BookCard = ({
       </CardContent>
       
       <CardFooter className="p-4 pt-0 flex items-center gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleAddToFavorites}
-          disabled={isAddingToFavorites}
-          className="flex-1 rounded-full border-primary/50"
-        >
+        <Button variant="outline" size="sm" onClick={handleAddToFavorites} disabled={isAddingToFavorites} className="flex-1 rounded-full border-primary/50 text-white">
           <Heart className="mr-2 h-4 w-4" /> Favorite
         </Button>
-        {book.file_url && (
-          <Button size="sm" asChild className="flex-1 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700">
+        {book.file_url && <Button size="sm" asChild className="flex-1 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700">
             <Link to={`/read/${book.id}`}>
               <BookOpen className="mr-2 h-4 w-4" /> Read
             </Link>
-          </Button>
-        )}
+          </Button>}
       </CardFooter>
-    </Card>
-  );
+    </Card>;
 };
-
 export default BookCard;
