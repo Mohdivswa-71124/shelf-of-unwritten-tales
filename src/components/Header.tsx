@@ -59,7 +59,7 @@ const Header = () => {
     return session.user.email.substring(0, 2).toUpperCase();
   };
   return <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center bg-teal-950">
+      <div className="container mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center bg-sky-50">
         <Link to="/" className="flex items-center text-2xl font-bold text-primary mb-4 sm:mb-0">
           <BookOpen className="mr-2" size={24} />
           <span>Bookshelf</span>
